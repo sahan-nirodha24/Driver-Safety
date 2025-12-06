@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#111a22"
+    tools:context=".spalsh">
+
+    <ImageView
+        android:id="@+id/heroImage"
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/splash"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:shapeAppearanceOverlay="@style/RoundedImage" />
+
+    <LinearLayout
+        android:id="@+id/textContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/heroImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Drive Smarter, Drive Safer"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:fontFamily="sans-serif-medium"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Driver Safety uses AI to detect drowsiness and provide smart assistance, ensuring a safer journey."
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:fontFamily="sans-serif"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGetStarted"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Get Started"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="8dp"
+            android:backgroundTint="#1380ec"
+            android:layout_marginBottom="12dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSkip"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Skip"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="8dp"
+            android:backgroundTint="#233648"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

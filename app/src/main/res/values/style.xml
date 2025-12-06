@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="BottomNavigationView.Active" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item> <!-- Or your active color -->
+    </style>
+
+    <style name="BottomNavigationView.Inactive" parent="TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/black</item> <!-- Or your inactive color -->
+    </style>
+
+    <style name="RoundedImage">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+</resources>

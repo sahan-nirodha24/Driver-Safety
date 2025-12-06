@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/bottom_dashboard"
+        android:title="Dashboard"
+        android:icon="@drawable/dashboard"/>
+
+    <item
+        android:id="@+id/bottom_rest_stops"
+        android:title="Rest Stops"
+        android:icon="@drawable/rest"/>
+
+    <item
+        android:id="@+id/bottom_smart_assistant"
+        android:title="Smart Assistant"
+        android:icon="@drawable/smart"/>
+
+    <item
+        android:id="@+id/bottom_diagnosis"
+        android:title="Diagnosis"
+        android:icon="@drawable/diagnosis"/>
+
+    <item
+        android:id="@+id/bottom_profile"
+        android:title="Profile"
+        android:icon="@drawable/profile"/>
+</menu>

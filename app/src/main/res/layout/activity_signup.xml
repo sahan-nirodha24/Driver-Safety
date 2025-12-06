@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#111a22"
+    tools:context=".signup">
+
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_back_arrow"
+        android:contentDescription="Go Back"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="4dp"
+        app:tint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/headerTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Driver Safety"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginEnd="52dp"
+        app:layout_constraintBottom_toBottomOf="@id/btnBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnBack"
+        app:layout_constraintTop_toTopOf="@id/btnBack" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnBack">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Create your account"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp" />
+
+            <EditText
+                android:id="@+id/etFullName"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_input_dark"
+                android:hint="Full Name"
+                android:textColorHint="#92adc9"
+                android:textColor="#FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:textSize="16sp"
+                android:inputType="textPersonName"
+                android:layout_marginBottom="16dp" />
+
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_input_dark"
+                android:hint="Email"
+                android:textColorHint="#92adc9"
+                android:textColor="#FFFFFF"
+                android:paddingHorizontal="16dp"
+                android:textSize="16sp"
+                android:inputType="textEmailAddress"
+                android:layout_marginBottom="16dp" />
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_input_dark"
+                android:hint="Password"
+                android:textColorHint="#92adc9"
+                android:textColor="#FFFFFF"
+                android:paddingStart="16dp"
+                android:paddingEnd="12dp"
+                android:textSize="16sp"
+                android:inputType="textPassword"
+                android:drawableEnd="@drawable/ic_eye"
+                android:drawablePadding="8dp"
+                android:layout_marginBottom="16dp" />
+
+            <EditText
+                android:id="@+id/etConfirmPassword"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_input_dark"
+                android:hint="Confirm Password"
+                android:textColorHint="#92adc9"
+                android:textColor="#FFFFFF"
+                android:paddingStart="16dp"
+                android:paddingEnd="12dp"
+                android:textSize="16sp"
+                android:inputType="textPassword"
+                android:drawableEnd="@drawable/ic_eye"
+                android:drawablePadding="8dp"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Password Strength"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <ProgressBar
+                    android:id="@+id/progressBarStrength"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:progressDrawable="@drawable/progress_strength"
+                    android:progress="25"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Weak"
+                    android:textColor="#92adc9"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGoogle"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Continue with Google"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:gravity="center_vertical"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                app:icon="@drawable/google"
+                app:iconSize="30dp"
+                app:iconPadding="16dp"
+                app:cornerRadius="28dp"
+                app:iconTint="@null"
+                android:backgroundTint="#040071"
+                android:paddingStart="80dp"
+                android:layout_marginBottom="12dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFacebook"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Continue with Facebook"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:gravity="center_vertical"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                app:icon="@drawable/fb"
+                app:iconSize="30dp"
+                app:iconPadding="16dp"
+                app:cornerRadius="28dp"
+                app:iconTint="@null"
+                android:backgroundTint="#040071"
+                android:paddingStart="80dp"
+                android:layout_marginBottom="24dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="24dp">
+
+                <CheckBox
+                    android:id="@+id/cbTerms"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="#1380ec"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="I agree to the Terms and Conditions"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCreateAccount"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Create Account"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                app:cornerRadius="28dp"
+                android:backgroundTint="#1380ec"
+                android:layout_marginBottom="24dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
+
+            <TextView
+                android:id="@+id/tvSignIn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Already have an account? Sign in"
+                android:textColor="#92adc9"
+                android:gravity="center"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
