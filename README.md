@@ -1,6 +1,6 @@
 # Driver Safety
 
-This Android application is designed to enhance driver safety by providing a suite of features to assist drivers and prevent accidents.
+This comprehensive Android application is designed to enhance driver safety by leveraging intelligent features and modern development practices, including secure user authentication (login, signup, and password recovery) to deliver a personalized, accident-prevention-focused experience.
 
 ## Features
 
