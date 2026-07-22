@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Leaflet Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { padding: 0; margin: 0; background: #111a22; }
+        html, body, #map { height: 100%; width: 100%; }
+        .leaflet-container { background: #111a22; }
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: #192633;
+            color: #ffffff;
+            border-radius: 8px;
+        }
+        .custom-popup .leaflet-popup-tip {
+            background: #192633;
+        }
+        .directions-link {
+            color: #2196F3;
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+        /* Color filters for markers */
+        .marker-orange { filter: hue-rotate(30deg) saturate(3); }
+        .marker-red { filter: hue-rotate(150deg) saturate(3); }
+        .marker-green { filter: hue-rotate(240deg) saturate(3); }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        console.log("Map script starting...");
+        var map = L.map('map').setView([6.9271, 79.8612], 13);
+
+        var mainMarker;
+        var searchCircle;
+        var nearbyGroup = L.layerGroup().addTo(map);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).on('tileload', function() {
+            console.log("Tile loaded");
+        }).addTo(map);
+
+        map.on('click', function(e) {
+            var lat = e.latlng.lat;
+            var lng = e.latlng.lng;
+            setMainMarker(lat, lng);
+            if (window.Android) {
+                window.Android.onLocationSelected(lat, lng);
+            }
+        });
+
+        function setMainMarker(lat, lng) {
+            console.log("Setting main marker: " + lat + ", " + lng);
+            if (mainMarker) map.removeLayer(mainMarker);
+            if (searchCircle) map.removeLayer(searchCircle);
+
+            mainMarker = L.marker([lat, lng]).addTo(map);
+            searchCircle = L.circle([lat, lng], {
+                color: '#2196F3',
+                fillColor: '#2196F3',
+                fillOpacity: 0.15,
+                radius: 5000
+            }).addTo(map);
+
+            map.fitBounds(searchCircle.getBounds());
+        }
+
+        function setCenter(lat, lng) {
+            setMainMarker(lat, lng);
+        }
+
+        function addNearbyMarkersBase64(base64Data, markerClass) {
+            try {
+                console.log("Adding nearby markers from Base64...");
+                if (!base64Data) return;
+
+                var jsonStr = atob(base64Data);
+                var places = JSON.parse(jsonStr);
+                console.log("Parsed " + places.length + " places");
+
+                nearbyGroup.clearLayers();
+
+                if (places.length === 0) {
+                    console.log("No places to add");
+                    return;
+                }
+
+                places.forEach(function(place) {
+                    try {
+                        var marker = L.marker([place.lat, place.lng]);
+
+                        marker.on('add', function() {
+                            if (this._icon && markerClass) {
+                                this._icon.classList.add(markerClass);
+                            }
+                        });
+
+                        var popupContent = '<div class="custom-popup">' +
+                            '<b>' + (place.name || "Unknown") + '</b><br>' +
+                            '<span>' + (place.address || "") + '</span>' +
+                            '<a class="directions-link" onclick="navigateTo(' + place.lat + ',' + place.lng + ',\'' + (place.name || "").replace(/'/g, "\\'") + '\')">Get Directions</a>' +
+                            '</div>';
+
+                        marker.bindPopup(popupContent).addTo(nearbyGroup);
+                    } catch (err) {
+                        console.error("Error adding single marker: " + err.message);
+                    }
+                });
+
+                var allLayers = nearbyGroup.getLayers();
+                var layersForBounds = allLayers.slice();
+                if (mainMarker) layersForBounds.push(mainMarker);
+
+                if (layersForBounds.length > 0) {
+                    var group = L.featureGroup(layersForBounds);
+                    map.fitBounds(group.getBounds(), { padding: [50, 50] });
+                }
+            } catch (e) {
+                console.error("Fatal error in addNearbyMarkersBase64: " + e.message);
+            }
+        }
+
+        function navigateTo(lat, lng, name) {
+            if (window.Android) {
+                window.Android.navigateTo(lat, lng, name);
+            }
+        }
+    </script>
+</body>
+</html>

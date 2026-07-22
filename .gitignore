@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# AI Assistant artifacts
+.artifacts/
