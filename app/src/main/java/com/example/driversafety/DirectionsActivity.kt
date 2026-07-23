@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log
 import android.webkit.GeolocationPermissions
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -45,16 +46,26 @@ class DirectionsActivity : AppCompatActivity() {
             }
         }
 
-        val startLoc = getCurrentLocation()
-        val url = if (startLoc != null) {
-            // OpenStreetMap Routing URL
-            "https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${startLoc.latitude},${startLoc.longitude};$destLat,$destLng"
-        } else {
-            // Fallback to just showing the destination if location is unavailable
-            "https://www.openstreetmap.org/search?query=$destLat,$destLng"
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                val startLoc = getCurrentLocation()
+                if (startLoc != null) {
+                    Log.d("DirectionsActivity", "Sending points: Start(${startLoc.latitude}, ${startLoc.longitude}) End($destLat, $destLng)")
+                    webView.evaluateJavascript(
+                        "javascript:drawRoute(${startLoc.latitude}, ${startLoc.longitude}, $destLat, $destLng)",
+                        null
+                    )
+                } else {
+                    Log.e("DirectionsActivity", "Current location is NULL")
+                    // If current location is null, we can at least center on destination
+                    webView.evaluateJavascript("javascript:map.setView([$destLat, $destLng], 15);", null)
+                    Toast.makeText(this@DirectionsActivity, "Current location unavailable. Please check GPS.", Toast.LENGTH_LONG).show()
+                }
+            }
         }
-        
-        webView.loadUrl(url)
+
+        webView.loadUrl("file:///android_asset/directions.html")
     }
 
     private fun getCurrentLocation(): Location? {

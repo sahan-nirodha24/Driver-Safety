@@ -26,15 +26,24 @@
             margin-top: 5px;
         }
         /* Color filters for markers */
-        .marker-orange { filter: hue-rotate(30deg) saturate(3); }
-        .marker-red { filter: hue-rotate(150deg) saturate(3); }
-        .marker-green { filter: hue-rotate(240deg) saturate(3); }
+        .marker-orange { filter: hue-rotate(200deg) brightness(1.2); }
+        .marker-red { filter: hue-rotate(320deg) brightness(1.2); }
+        .marker-green { filter: hue-rotate(90deg) brightness(1.2); }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script>
         console.log("Map script starting...");
+
+        // Fix Leaflet marker icons not appearing in WebView
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        });
+
         var map = L.map('map').setView([6.9271, 79.8612], 13);
 
         var mainMarker;
@@ -51,16 +60,26 @@
         map.on('click', function(e) {
             var lat = e.latlng.lat;
             var lng = e.latlng.lng;
+            console.log("Map clicked at: " + lat + ", " + lng);
             setMainMarker(lat, lng);
             if (window.Android) {
+                console.log("Sending location to Android: " + lat + ", " + lng);
                 window.Android.onLocationSelected(lat, lng);
+            } else {
+                console.warn("window.Android not found");
             }
         });
 
         function setMainMarker(lat, lng) {
-            console.log("Setting main marker: " + lat + ", " + lng);
-            if (mainMarker) map.removeLayer(mainMarker);
-            if (searchCircle) map.removeLayer(searchCircle);
+            console.log("setMainMarker called with: " + lat + ", " + lng);
+            if (mainMarker) {
+                console.log("Removing existing mainMarker");
+                map.removeLayer(mainMarker);
+            }
+            if (searchCircle) {
+                console.log("Removing existing searchCircle");
+                map.removeLayer(searchCircle);
+            }
 
             mainMarker = L.marker([lat, lng]).addTo(map);
             searchCircle = L.circle([lat, lng], {
@@ -69,62 +88,102 @@
                 fillOpacity: 0.15,
                 radius: 5000
             }).addTo(map);
+            console.log("Main marker and 5km circle added");
 
             map.fitBounds(searchCircle.getBounds());
         }
 
         function setCenter(lat, lng) {
+            console.log("setCenter called: " + lat + ", " + lng);
             setMainMarker(lat, lng);
+        }
+
+        function clearMap() {
+            console.log("clearMap called");
+            if (mainMarker) {
+                map.removeLayer(mainMarker);
+                mainMarker = null;
+            }
+            if (searchCircle) {
+                map.removeLayer(searchCircle);
+                searchCircle = null;
+            }
+            nearbyGroup.clearLayers();
+            // Reset to default center
+            map.setView([6.9271, 79.8612], 13);
         }
 
         function addNearbyMarkersBase64(base64Data, markerClass) {
             try {
-                console.log("Adding nearby markers from Base64...");
-                if (!base64Data) return;
-
-                var jsonStr = atob(base64Data);
-                var places = JSON.parse(jsonStr);
-                console.log("Parsed " + places.length + " places");
-
-                nearbyGroup.clearLayers();
-
-                if (places.length === 0) {
-                    console.log("No places to add");
+                console.log("addNearbyMarkersBase64 called. markerClass: " + markerClass);
+                if (!base64Data) {
+                    console.error("No base64Data received!");
                     return;
                 }
 
-                places.forEach(function(place) {
+                console.log("Decoding Base64 data...");
+                var binStr = atob(base64Data);
+                var bytes = new Uint8Array(binStr.length);
+                for (var i = 0; i < binStr.length; i++) {
+                    bytes[i] = binStr.charCodeAt(i);
+                }
+                var jsonStr = new TextDecoder().decode(bytes);
+                var places = JSON.parse(jsonStr);
+
+                console.log("Successfully parsed JSON. Count: " + places.length);
+
+                console.log("Clearing nearbyGroup layers");
+                nearbyGroup.clearLayers();
+
+                if (places.length === 0) {
+                    console.log("No places to display.");
+                    return;
+                }
+
+                places.forEach(function(place, index) {
                     try {
-                        var marker = L.marker([place.lat, place.lng]);
+                        console.log("Adding marker " + (index+1) + ": " + place.name + " at [" + place.lat + ", " + place.lng + "]");
+
+                        var marker = L.marker([place.lat, place.lng], {
+                            title: place.name
+                        });
 
                         marker.on('add', function() {
-                            if (this._icon && markerClass) {
+                            if (this._icon) {
+                                console.log("Applying class " + markerClass + " to marker icon for " + place.name);
                                 this._icon.classList.add(markerClass);
+                            } else {
+                                console.warn("Marker icon not found for " + place.name + " on 'add' event");
                             }
                         });
 
                         var popupContent = '<div class="custom-popup">' +
-                            '<b>' + (place.name || "Unknown") + '</b><br>' +
+                            '<b>' + (place.name || "Unnamed Place") + '</b><br>' +
                             '<span>' + (place.address || "") + '</span>' +
                             '<a class="directions-link" onclick="navigateTo(' + place.lat + ',' + place.lng + ',\'' + (place.name || "").replace(/'/g, "\\'") + '\')">Get Directions</a>' +
                             '</div>';
 
                         marker.bindPopup(popupContent).addTo(nearbyGroup);
                     } catch (err) {
-                        console.error("Error adding single marker: " + err.message);
+                        console.error("Error creating marker for " + place.name + ": " + err);
                     }
                 });
 
-                var allLayers = nearbyGroup.getLayers();
-                var layersForBounds = allLayers.slice();
-                if (mainMarker) layersForBounds.push(mainMarker);
+                console.log("All markers added to group. Computing bounds...");
+                var layersForBounds = nearbyGroup.getLayers();
+                if (mainMarker) {
+                    console.log("Including mainMarker in bounds computation");
+                    layersForBounds.push(mainMarker);
+                }
 
                 if (layersForBounds.length > 0) {
                     var group = L.featureGroup(layersForBounds);
-                    map.fitBounds(group.getBounds(), { padding: [50, 50] });
+                    var bounds = group.getBounds();
+                    console.log("Fitting map to bounds: " + JSON.stringify(bounds));
+                    map.fitBounds(bounds.pad(0.1));
                 }
             } catch (e) {
-                console.error("Fatal error in addNearbyMarkersBase64: " + e.message);
+                console.error("FATAL in addNearbyMarkersBase64: " + e.stack);
             }
         }
 

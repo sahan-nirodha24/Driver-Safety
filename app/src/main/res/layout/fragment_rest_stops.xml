@@ -81,8 +81,9 @@
 
                 <EditText
                     android:id="@+id/etSearch"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:background="@null"
                     android:hint="Search"
                     android:textColorHint="#92adc9"
@@ -92,6 +93,17 @@
                     android:inputType="text"
                     android:imeOptions="actionSearch"
                     android:maxLines="1"/>
+
+                <ImageView
+                    android:id="@+id/btnClearSearch"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    app:tint="#92adc9"
+                    android:visibility="gone"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Clear search" />
             </LinearLayout>
 
             <HorizontalScrollView

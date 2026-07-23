@@ -14,9 +14,11 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import org.json.JSONArray
 import org.json.JSONObject
@@ -45,6 +47,20 @@ class RestStops : Fragment() {
         setupWebView()
 
         val etSearch: EditText = view.findViewById(R.id.etSearch)
+        val btnClearSearch: ImageView = view.findViewById(R.id.btnClearSearch)
+
+        etSearch.addTextChangedListener { text ->
+            btnClearSearch.visibility = if (text.isNullOrEmpty()) View.GONE else View.VISIBLE
+        }
+
+        btnClearSearch.setOnClickListener {
+            etSearch.text.clear()
+            selectedLat = 6.9271
+            selectedLng = 79.8612
+            mapWebView.evaluateJavascript("javascript:clearMap()", null)
+            Toast.makeText(requireContext(), "Search cleared", Toast.LENGTH_SHORT).show()
+        }
+
         etSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 val query = etSearch.text.toString()
@@ -58,12 +74,15 @@ class RestStops : Fragment() {
         }
 
         view.findViewById<TextView>(R.id.btnCoffeeShops).setOnClickListener {
+            Toast.makeText(requireContext(), "Searching for Coffee Shops...", Toast.LENGTH_SHORT).show()
             fetchAndShowNearby("amenity=cafe", "marker-orange")
         }
         view.findViewById<TextView>(R.id.btnRestaurants).setOnClickListener {
+            Toast.makeText(requireContext(), "Searching for Restaurants...", Toast.LENGTH_SHORT).show()
             fetchAndShowNearby("amenity=restaurant", "marker-red")
         }
         view.findViewById<TextView>(R.id.btnGasStations).setOnClickListener {
+            Toast.makeText(requireContext(), "Searching for Gas Stations...", Toast.LENGTH_SHORT).show()
             fetchAndShowNearby("amenity=fuel", "marker-green")
         }
     }
@@ -108,14 +127,25 @@ class RestStops : Fragment() {
                         if (isAdded) {
                             mapProgressBar.visibility = View.GONE
                             mapWebView.evaluateJavascript("javascript:setCenter($lat, $lon)", null)
+                            Toast.makeText(requireContext(), "Location updated: $query", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
-                    activity?.runOnUiThread { if (isAdded) mapProgressBar.visibility = View.GONE }
+                    activity?.runOnUiThread { 
+                        if (isAdded) {
+                            mapProgressBar.visibility = View.GONE
+                            Toast.makeText(requireContext(), "Location not found", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                activity?.runOnUiThread { if (isAdded) mapProgressBar.visibility = View.GONE }
+                activity?.runOnUiThread { 
+                    if (isAdded) {
+                        mapProgressBar.visibility = View.GONE
+                        Toast.makeText(requireContext(), "Search error: Check connection", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }
@@ -125,57 +155,96 @@ class RestStops : Fragment() {
         mapProgressBar.visibility = View.VISIBLE
         thread {
             try {
-                // radius 5km for more results
-                val query = "[out:json][timeout:30];(node(around:5000,$selectedLat,$selectedLng)[$category];way(around:5000,$selectedLat,$selectedLng)[$category];rel(around:5000,$selectedLat,$selectedLng)[$category];);out center 50;"
+                activity?.runOnUiThread { Toast.makeText(requireContext(), "Preparing Overpass request...", Toast.LENGTH_SHORT).show() }
                 
-                // Using a standard browser User-Agent
-                val userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                
+                // Refined Overpass query: radius 5km, max 100 results, including centers for ways/relations
+                val query = "[out:json][timeout:30];(node(around:5000,$selectedLat,$selectedLng)[$category];way(around:5000,$selectedLat,$selectedLng)[$category];rel(around:5000,$selectedLat,$selectedLng)[$category];);out 100 center;"
+                Log.d("RestStops", "Query: $query")
+
+                val userAgent = "DriverSafetyApp/1.2 (Android; Testing; RetryLogic)"
                 var response = ""
+                
+                val endpoints = listOf(
+                    "https://overpass-api.de/api/interpreter",
+                    "https://lz4.overpass-api.de/api/interpreter",
+                    "https://z.overpass-api.de/api/interpreter",
+                    "https://overpass.kumi.systems/api/interpreter",
+                    "https://overpass.osm.ch/api/interpreter"
+                )
+
                 try {
-                    val url = URL("https://overpass-api.de/api/interpreter?data=${java.net.URLEncoder.encode(query, "UTF-8")}")
-                    val connection = url.openConnection() as java.net.HttpURLConnection
-                    connection.setRequestProperty("User-Agent", userAgent)
-                    connection.connectTimeout = 15000
-                    connection.readTimeout = 30000
+                    val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")
+                    val postData = "data=$encodedQuery"
                     
-                    if (connection.responseCode == 200) {
-                        response = connection.inputStream.bufferedReader().use { it.readText() }
-                    } else {
-                        Log.e("RestStops", "Primary server error: ${connection.responseCode}")
-                        // Try backup server
-                        val backupUrl = URL("https://overpass.kumi.systems/api/interpreter?data=${java.net.URLEncoder.encode(query, "UTF-8")}")
-                        val backupConn = backupUrl.openConnection() as java.net.HttpURLConnection
-                        backupConn.setRequestProperty("User-Agent", userAgent)
-                        backupConn.connectTimeout = 15000
-                        backupConn.readTimeout = 30000
-                        if (backupConn.responseCode == 200) {
-                            response = backupConn.inputStream.bufferedReader().use { it.readText() }
+                    for (baseUrl in endpoints) {
+                        try {
+                            val url = URL(baseUrl)
+                            Log.d("RestStops", "Attempting fetch from: $baseUrl")
+                            activity?.runOnUiThread { Toast.makeText(requireContext(), "Trying server: ${baseUrl.substringAfter("://").substringBefore("/")}", Toast.LENGTH_SHORT).show() }
+                            
+                            val connection = url.openConnection() as java.net.HttpURLConnection
+                            connection.requestMethod = "POST"
+                            connection.setRequestProperty("User-Agent", userAgent)
+                            connection.setRequestProperty("Accept", "application/json")
+                            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+                            connection.doOutput = true
+                            connection.connectTimeout = 10000 // 10s connect
+                            connection.readTimeout = 20000    // 20s read
+                            
+                            connection.outputStream.use { it.write(postData.toByteArray()) }
+                            
+                            val responseCode = connection.responseCode
+                            Log.d("RestStops", "Response Code from $baseUrl: $responseCode")
+                            
+                            if (responseCode == 200) {
+                                response = connection.inputStream.bufferedReader().use { it.readText() }
+                                if (response.isNotEmpty()) {
+                                    Log.d("RestStops", "Success from $baseUrl")
+                                    break // Success! Exit the loop
+                                }
+                            } else {
+                                Log.e("RestStops", "Server $baseUrl returned $responseCode")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("RestStops", "Failed to fetch from $baseUrl: ${e.message}")
+                            // Continue to next endpoint
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("RestStops", "Network exception", e)
+                    Log.e("RestStops", "Fatal encoding error", e)
                 }
 
                 if (response.isEmpty()) {
                     activity?.runOnUiThread {
                         if (isAdded) {
                             mapProgressBar.visibility = View.GONE
-                            Toast.makeText(requireContext(), "Map service temporarily unavailable", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "Failed to fetch map data. Service may be down.", Toast.LENGTH_LONG).show()
                         }
                     }
                     return@thread
                 }
 
-                Log.d("RestStops", "Data received: ${response.length} chars")
+                Log.d("RestStops", "Response Length: ${response.length}")
+                activity?.runOnUiThread { Toast.makeText(requireContext(), "Parsing JSON response...", Toast.LENGTH_SHORT).show() }
+                
                 val json = JSONObject(response)
                 val elements = json.getJSONArray("elements")
-
                 val placesJson = JSONArray()
+
                 for (i in 0 until elements.length()) {
                     val obj = elements.getJSONObject(i)
-                    val pLat = if (obj.has("lat")) obj.getDouble("lat") else obj.optJSONObject("center")?.optDouble("lat") ?: continue
-                    val pLng = if (obj.has("lon")) obj.getDouble("lon") else obj.optJSONObject("center")?.optDouble("lon") ?: continue
+                    // Nodes have lat/lon directly. Ways/Relations have them in "center" object if using "out center"
+                    val pLat = if (obj.has("lat")) {
+                        obj.getDouble("lat")
+                    } else {
+                        obj.optJSONObject("center")?.optDouble("lat") ?: continue
+                    }
+                    
+                    val pLng = if (obj.has("lon")) {
+                        obj.getDouble("lon")
+                    } else {
+                        obj.optJSONObject("center")?.optDouble("lon") ?: continue
+                    }
                     
                     val tags = obj.optJSONObject("tags")
                     val name = tags?.optString("name") ?: "Unnamed Place"
@@ -195,22 +264,24 @@ class RestStops : Fragment() {
                     if (isAdded) {
                         mapProgressBar.visibility = View.GONE
                         if (placesJson.length() == 0) {
-                            Toast.makeText(requireContext(), "No places found within 5km", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "No results found in this area", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(requireContext(), "Success: Found ${placesJson.length()} locations", Toast.LENGTH_SHORT).show()
                         }
+                        
+                        Log.d("RestStops", "Sending ${placesJson.length()} places to WebView")
                         val base64Data = Base64.encodeToString(placesJson.toString().toByteArray(), Base64.NO_WRAP)
                         mapWebView.evaluateJavascript("javascript:addNearbyMarkersBase64('$base64Data', '$markerClass')", null)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("RestStops", "Parsing error", e)
+                Log.e("RestStops", "Processing error", e)
                 activity?.runOnUiThread { 
                     if (isAdded) {
                         mapProgressBar.visibility = View.GONE
-                        Toast.makeText(requireContext(), "Error updating map", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Error: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                     }
                 }
-            } finally {
-                activity?.runOnUiThread { if (isAdded) mapProgressBar.visibility = View.GONE }
             }
         }
     }
