@@ -32,6 +32,10 @@ class RestStops : Fragment() {
     private var selectedLat: Double = 6.9271
     private var selectedLng: Double = 79.8612
 
+    private lateinit var btnCoffeeShops: TextView
+    private lateinit var btnRestaurants: TextView
+    private lateinit var btnGasStations: TextView
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -44,6 +48,11 @@ class RestStops : Fragment() {
 
         mapWebView = view.findViewById(R.id.mapWebView)
         mapProgressBar = view.findViewById(R.id.mapProgressBar)
+        
+        btnCoffeeShops = view.findViewById(R.id.btnCoffeeShops)
+        btnRestaurants = view.findViewById(R.id.btnRestaurants)
+        btnGasStations = view.findViewById(R.id.btnGasStations)
+
         setupWebView()
 
         val etSearch: EditText = view.findViewById(R.id.etSearch)
@@ -57,7 +66,9 @@ class RestStops : Fragment() {
             etSearch.text.clear()
             selectedLat = 6.9271
             selectedLng = 79.8612
+            resetChips()
             mapWebView.evaluateJavascript("javascript:clearMap()", null)
+            mapWebView.evaluateJavascript("javascript:updateTheme(false)", null)
             Toast.makeText(requireContext(), "Search cleared", Toast.LENGTH_SHORT).show()
         }
 
@@ -73,17 +84,31 @@ class RestStops : Fragment() {
             }
         }
 
-        view.findViewById<TextView>(R.id.btnCoffeeShops).setOnClickListener {
-            Toast.makeText(requireContext(), "Searching for Coffee Shops...", Toast.LENGTH_SHORT).show()
+        btnCoffeeShops.setOnClickListener {
+            setActiveChip(btnCoffeeShops)
             fetchAndShowNearby("amenity=cafe", "marker-orange")
         }
-        view.findViewById<TextView>(R.id.btnRestaurants).setOnClickListener {
-            Toast.makeText(requireContext(), "Searching for Restaurants...", Toast.LENGTH_SHORT).show()
+        btnRestaurants.setOnClickListener {
+            setActiveChip(btnRestaurants)
             fetchAndShowNearby("amenity=restaurant", "marker-red")
         }
-        view.findViewById<TextView>(R.id.btnGasStations).setOnClickListener {
-            Toast.makeText(requireContext(), "Searching for Gas Stations...", Toast.LENGTH_SHORT).show()
+        btnGasStations.setOnClickListener {
+            setActiveChip(btnGasStations)
             fetchAndShowNearby("amenity=fuel", "marker-green")
+        }
+    }
+
+    private fun setActiveChip(activeChip: TextView) {
+        resetChips()
+        activeChip.setBackgroundResource(R.drawable.bg_surface_rounded)
+        activeChip.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1380ec"))
+    }
+
+    private fun resetChips() {
+        val chips = listOf(btnCoffeeShops, btnRestaurants, btnGasStations)
+        chips.forEach { chip ->
+            chip.setBackgroundResource(R.drawable.bg_surface_rounded)
+            chip.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#233648"))
         }
     }
 
@@ -270,6 +295,7 @@ class RestStops : Fragment() {
                         }
                         
                         Log.d("RestStops", "Sending ${placesJson.length()} places to WebView")
+                        mapWebView.evaluateJavascript("javascript:updateTheme(true)", null)
                         val base64Data = Base64.encodeToString(placesJson.toString().toByteArray(), Base64.NO_WRAP)
                         mapWebView.evaluateJavascript("javascript:addNearbyMarkersBase64('$base64Data', '$markerClass')", null)
                     }
