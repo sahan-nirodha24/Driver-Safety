@@ -211,6 +211,7 @@
                             </LinearLayout>
 
                             <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnFindStations"
                                 android:layout_width="wrap_content"
                                 android:layout_height="32dp"
                                 android:background="@drawable/bg_primary_button"

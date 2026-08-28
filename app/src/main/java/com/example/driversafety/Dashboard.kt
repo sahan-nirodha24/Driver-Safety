@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 
 class Dashboard : Fragment() {
@@ -24,6 +25,14 @@ class Dashboard : Fragment() {
         btnSettings.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, Profile())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        val btnFindStations: Button = view.findViewById(R.id.btnFindStations)
+        btnFindStations.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, RestStops())
                 .addToBackStack(null)
                 .commit()
         }

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Directions</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <style>
+        body { padding: 0; margin: 0; background: #111a22; overflow: hidden; }
+        html, body, #map { height: 100%; width: 100%; }
+        .leaflet-container { background: #111a22; }
+        .leaflet-routing-container { display: none; }
+
+        .pulse-marker {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #1380ec;
+            box-shadow: 0 0 10px #1380ec;
+            position: relative;
+        }
+        .pulse-marker::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(3.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map', { zoomControl: false }).setView([6.9271, 79.8612], 13);
+        var routingControl;
+        var startMarker, endMarker;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        function drawRoute(startLat, startLng, endLat, endLng) {
+            if (startMarker) map.removeLayer(startMarker);
+            if (endMarker) map.removeLayer(endMarker);
+            if (routingControl) map.removeControl(routingControl);
+
+            var icon = L.divIcon({ className: 'pulse-marker', iconSize: [14, 14], iconAnchor: [7, 7] });
+            startMarker = L.marker([startLat, startLng], { icon: icon }).bindPopup("Start").addTo(map);
+            endMarker = L.marker([endLat, endLng], { icon: icon }).bindPopup("Destination").addTo(map);
+
+            routingControl = L.Routing.control({
+                waypoints: [L.latLng(startLat, startLng), L.latLng(endLat, endLng)],
+                lineOptions: { styles: [{ color: '#1380ec', opacity: 0.7, weight: 5 }] },
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: true,
+                showAlternatives: false,
+                createMarker: function() { return null; }
+            }).addTo(map);
+        }
+    </script>
+</body>
+</html>
